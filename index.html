@@ -1,1 +1,164 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KyaDekhein — Aaj kya dekhein? Mood batao, movie pao</title>
+<meta name="description" content="Mood chuno aur ek perfect movie suggestion pao. Hindi, South aur Hollywood ki best movies ke honest reviews.">
+<meta name="theme-color" content="#0e0b1f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎬%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#0e0b1f;--card:#18142e;--line:rgba(255,255,255,.12);--text:#f5f2ea;--mut:#a9a5c4;--a:#ffb224;--b:#ff4d8d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding-bottom:40px}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{width:min(1000px,100% - 32px);margin-inline:auto}
+header{padding:28px 0 8px;text-align:center}
+.logo{font-size:1.1rem;font-weight:800;letter-spacing:.04em}
+.logo b{background:linear-gradient(100deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1{font-size:clamp(1.9rem,7vw,3.2rem);line-height:1.15;margin:18px 0 10px}
+h1 span{background:linear-gradient(100deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mut);max-width:46ch;margin:0 auto}
+.moods{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:24px 0 14px}
+.chip{padding:10px 16px;border-radius:999px;border:1px solid var(--line);font-weight:700;font-size:.9rem;color:var(--mut)}
+.chip.on{background:linear-gradient(110deg,var(--a),var(--b));color:#1c0f08;border-color:transparent}
+.tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+.search{flex:1 1 220px;max-width:340px;padding:12px 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit}
+.search:focus{outline:2px solid var(--a)}
+.btn{padding:12px 22px;border-radius:999px;font-weight:800;background:linear-gradient(110deg,var(--a),var(--b));color:#1c0f08}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--text)}
+.btn.ghost.on{border-color:var(--a);color:var(--a)}
+.count{text-align:center;color:var(--mut);font-size:.82rem;margin:6px 0 18px;letter-spacing:.08em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;transition:transform .3s}
+.card.pop{animation:pop .9s ease;border-color:var(--a)}
+@keyframes pop{0%{transform:scale(.96)}50%{transform:scale(1.03)}100%{transform:none}}
+.top{padding:18px;min-height:120px;display:flex;flex-direction:column;justify-content:flex-end;position:relative}
+.top h2{font-size:1.4rem;line-height:1.2;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+.tag{position:absolute;top:12px;left:14px;font-size:.72rem;font-weight:800;letter-spacing:.1em;background:rgba(0,0,0,.35);padding:4px 10px;border-radius:999px;color:#fff}
+.emo{position:absolute;top:8px;right:14px;font-size:2rem}
+.body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
+.rate{color:var(--a);font-weight:800;font-size:.9rem}
+.why{font-weight:700}
+.rev{color:var(--mut);font-size:.93rem}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.acts a,.acts button{padding:9px 14px;border-radius:999px;border:1px solid var(--line);font-weight:700;font-size:.82rem}
+.acts .tr{background:var(--text);color:#111;border-color:transparent}
+.acts .on{border-color:var(--b);color:var(--b)}
+.empty{text-align:center;color:var(--mut);padding:40px 0}
+.ad{margin:22px auto;text-align:center;overflow:hidden}
+.ad:empty{display:none}
+footer{margin-top:40px;padding:26px 0;border-top:1px solid var(--line);text-align:center;color:var(--mut);font-size:.8rem}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#fff;color:#111;padding:10px 18px;border-radius:12px;font-weight:700;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+#toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="logo">🎬 Kya<b>Dekhein</b></div>
+  <h1>Aaj <span>kya dekhein?</span></h1>
+  <p class="sub">Mood chuno, baaki hum pe chhod do. Ek perfect movie ka suggestion, honest review ke saath.</p>
+</header>
 
+<main class="wrap">
+  <div class="moods" id="moods" role="group" aria-label="Mood chuno"></div>
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="Movie ya language dhundo…" aria-label="Search">
+    <button class="btn" id="pick">🎲 Mujhe suggest karo</button>
+    <button class="btn ghost" id="mine">❤ Meri list <span id="mc">0</span></button>
+  </div>
+  <p class="count" id="count" role="status"></p>
+
+  <div class="ad" id="ad-top"><!-- Adsterra banner code yahan paste karo --></div>
+  <div class="grid" id="grid"></div>
+  <div class="ad" id="ad-bottom"><!-- Dusra Adsterra banner code yahan paste karo --></div>
+</main>
+
+<footer class="wrap">
+  <p>KyaDekhein sirf movie suggestions deta hai. Yahan koi movie download ya streaming nahi hoti.</p>
+  <p>Trailer button YouTube par official trailer ki search kholta hai. Reviews hamari apni raay hain.</p>
+  <p style="margin-top:8px">© <span id="yr">2026</span> KyaDekhein</p>
+</footer>
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+var M=[
+ ["all","✨ Sab"],["hans","😂 Hansna hai"],["thrill","😱 Thriller"],["emo","🥹 Emotional"],["dimaag","🤯 Dimaag ghumao"],["josh","🔥 Josh wali"]
+];
+var F=[
+ {id:"3idiots",t:"3 Idiots",y:2009,l:"Hindi",m:["hans","emo"],r:5,e:"🎓",g:["#ff8a00","#e52e71"],w:"College ki yaadein aur zindagi ka sabak, ek hi film mein.",v:"Hansate hansate aisi baat bol jaati hai jo dil mein ghar kar leti hai. Dosti aur padhai ke dabaav par aaj bhi utni hi sachchi lagti hai."},
+ {id:"dangal",t:"Dangal",y:2016,l:"Hindi",m:["emo","josh"],r:5,e:"🤼",g:["#f7971e","#c0392b"],w:"Ek pita ki zidd aur do betiyon ki mehnat.",v:"Kushti ke scenes sach mein jaan daal dete hain. Aakhri hisse mein rongte khade ho jaate hain, aur parivaar ke saath dekhne layak hai."},
+ {id:"andhadhun",t:"Andhadhun",y:2018,l:"Hindi",m:["thrill","hans"],r:5,e:"🎹",g:["#0f2027","#2c5364"],w:"Ek andha pianist ya sirf andha hone ka natak?",v:"Kahani har 10 minute mein palat jaati hai. Kam baatein batao, zyada dekho: jitna kam pata ho, utna maza aata hai."},
+ {id:"drishyam",t:"Drishyam",y:2015,l:"Hindi",m:["thrill","emo"],r:4,e:"🕵️",g:["#1d976c","#093028"],w:"Ek aam aadmi ka ek bahut chalaak plan.",v:"Dheere dheere tension banata hai aur climax mein sab jod deta hai. Ek family ko bachane ki kahani hone ki wajah se dil se jud jaati hai."},
+ {id:"tumbbad",t:"Tumbbad",y:2018,l:"Hindi",m:["thrill","dimaag"],r:5,e:"👹",g:["#3a1c1c","#0b0b0b"],w:"Laalach ki ek dark, dehshat bhari kahani.",v:"Isme darr se zyada ek ajeeb sa mahaul hai jo dimaag mein reh jaata hai. Visuals bilkul alag hain, raat ko akele dekhne ki himmat ho to dekho."},
+ {id:"swades",t:"Swades",y:2004,l:"Hindi",m:["emo"],r:4,e:"🌾",g:["#56ab2f","#134e5e"],w:"Videsh se laut kar apni mitti ko samajhne ki kahani.",v:"Dheemi hai par sachchi hai. Ek shaant sham ke liye perfect hai, jab dil ko sukoon aur thoda sochne ka mann ho."},
+ {id:"rrr",t:"RRR",y:2022,l:"Telugu",m:["josh","emo"],r:5,e:"🔥",g:["#f12711","#f5af19"],w:"Do dosto ki aag aur paani wali kahani.",v:"Har scene bada aur dhamakedaar hai. Dimaag ghar rakh ke sirf josh ka maza lo, aur ho sake to badi screen par dekho."},
+ {id:"kgf2",t:"KGF Chapter 2",y:2022,l:"Kannada",m:["josh"],r:4,e:"⛏️",g:["#232526","#b8860b"],w:"Style, swag aur dhamakedaar dialogues.",v:"Hero ki entry aur dialogues ka asar alag hai. Kahani se zyada swag ke liye dekho, aur pehla part pehle dekh lena behtar hai."},
+ {id:"kantara",t:"Kantara",y:2022,l:"Kannada",m:["thrill","josh","emo"],r:5,e:"🌳",g:["#134e5e","#71b280"],w:"Jungle, lok-parampara aur ek jabardast climax.",v:"Ek gaon ki mitti se judi kahani jo aakhri 20 minute mein alag hi level par chali jaati hai. Bina spoiler ke bas itna: climax ke liye hi dekho."},
+ {id:"vikram",t:"Vikram",y:2022,l:"Tamil",m:["thrill","josh"],r:4,e:"🔫",g:["#16222a","#3a6073"],w:"Ek raat, ek mission, aur kayi raaz.",v:"Stylish action aur tej raftaar wali thriller hai. Jitna dhyan se dekhoge, utne chhote chhote connections milenge."},
+ {id:"interstellar",t:"Interstellar",y:2014,l:"English",m:["dimaag","emo"],r:5,e:"🚀",g:["#0f0c29","#302b63"],w:"Space, waqt aur ek pita-beti ka rishta.",v:"Science aur jazbaat ka kamaal ka mel hai. Background music alag hi asar karta hai, isliye headphones laga ke dekho."},
+ {id:"inception",t:"Inception",y:2010,l:"English",m:["dimaag","thrill","josh"],r:5,e:"🌀",g:["#2b5876","#4e4376"],w:"Sapno ke andar sapne, aur ek chori.",v:"Pehli baar mein shayad 70% samajh aaye, aur doosri baar mein baaki 30% ka maza aata hai. Dhyan se dekhne wali movie hai, phone door rakh do."},
+ {id:"darkknight",t:"The Dark Knight",y:2008,l:"English",m:["thrill","josh"],r:5,e:"🦇",g:["#141e30","#35577d"],w:"Superhero se zyada ek crime thriller.",v:"Villain ka kirdaar sabse zyada yaad rehta hai. Dheere dheere dil dhadkane lagta hai, aur isse superhero movies dekhne ka nazariya badal jaata hai."},
+ {id:"shawshank",t:"The Shawshank Redemption",y:1994,l:"English",m:["emo","dimaag"],r:5,e:"🕊️",g:["#485563","#29323c"],w:"Jail ki deewaron ke beech umeed ki kahani.",v:"Chupchaap aur dheere se dil jeet leti hai. Jab mann udaas ho ya himmat chahiye, tab ye movie sahara deti hai."},
+ {id:"parasite",t:"Parasite",y:2019,l:"Korean",m:["thrill","dimaag","hans"],r:5,e:"🏠",g:["#355c7d","#c06c84"],w:"Ameer aur gareeb ke beech ek ajeeb khel.",v:"Shuru mein halki-phulki lagti hai, phir aisa mod aata hai jo socha nahi hota. Subtitles ke saath dekhna padega, par poora paisa vasool."}
+];
+var wl=[];try{wl=JSON.parse(localStorage.getItem("kd-list")||"[]")}catch(e){}
+var mood="all",q="",onlyMine=false;
+var $=function(s){return document.querySelector(s)};
+function save(){try{localStorage.setItem("kd-list",JSON.stringify(wl))}catch(e){}$("#mc").textContent=wl.length}
+function toast(m){var t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2200)}
+function list(){
+  return F.filter(function(f){
+    if(mood!=="all"&&f.m.indexOf(mood)<0)return false;
+    if(onlyMine&&wl.indexOf(f.id)<0)return false;
+    if(q){var s=(f.t+" "+f.l+" "+f.y).toLowerCase();if(s.indexOf(q)<0)return false}
+    return true;
+  });
+}
+function stars(n){return "★★★★★".slice(0,n)+"☆☆☆☆☆".slice(0,5-n)}
+function render(hi){
+  var L=list(),g=$("#grid");g.innerHTML="";
+  $("#count").textContent=L.length+(L.length===1?" MOVIE":" MOVIES");
+  if(!L.length){g.innerHTML='<p class="empty">Kuch nahi mila. Doosra mood ya naam try karo.</p>';return}
+  L.forEach(function(f){
+    var c=document.createElement("article");c.className="card"+(hi===f.id?" pop":"");c.id="m-"+f.id;
+    var saved=wl.indexOf(f.id)>=0;
+    c.innerHTML='<div class="top" style="background:linear-gradient(135deg,'+f.g[0]+','+f.g[1]+')"><span class="tag">'+f.l.toUpperCase()+' · '+f.y+'</span><span class="emo">'+f.e+'</span><h2>'+f.t+'</h2></div>'+
+    '<div class="body"><div class="rate">'+stars(f.r)+' KyaDekhein rating</div><p class="why">'+f.w+'</p><p class="rev">'+f.v+'</p>'+
+    '<div class="acts"><a class="tr" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(f.t+" "+f.y+" official trailer")+'">▶ Trailer</a>'+
+    '<button class="sv'+(saved?" on":"")+'" data-id="'+f.id+'">'+(saved?"❤ Saved":"♡ Save")+'</button>'+
+    '<a target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent("Ye movie dekho: "+f.t+" ("+f.y+") — "+f.w+" "+location.href)+'">Share</a></div></div>';
+    g.appendChild(c);
+  });
+  if(hi){var el=$("#m-"+hi);if(el)el.scrollIntoView({behavior:"smooth",block:"center"})}
+}
+var mo=$("#moods");
+M.forEach(function(m){
+  var b=document.createElement("button");b.className="chip"+(m[0]==="all"?" on":"");b.textContent=m[1];
+  b.addEventListener("click",function(){
+    mood=m[0];Array.prototype.forEach.call(mo.children,function(x){x.classList.remove("on")});b.classList.add("on");render();
+  });
+  mo.appendChild(b);
+});
+$("#q").addEventListener("input",function(e){q=e.target.value.trim().toLowerCase();render()});
+$("#pick").addEventListener("click",function(){
+  var L=list();if(!L.length){toast("Is filter mein koi movie nahi hai");return}
+  var f=L[Math.floor(Math.random()*L.length)];render(f.id);toast("Aaj ke liye: "+f.t+" 🎬");
+});
+$("#mine").addEventListener("click",function(){
+  onlyMine=!onlyMine;this.classList.toggle("on",onlyMine);render();
+});
+$("#grid").addEventListener("click",function(e){
+  var b=e.target.closest(".sv");if(!b)return;
+  var id=b.getAttribute("data-id"),i=wl.indexOf(id);
+  if(i<0){wl.push(id);toast("List mein add ho gayi ❤")}else{wl.splice(i,1);toast("List se hata di")}
+  save();render();
+});
+$("#yr").textContent=new Date().getFullYear();
+save();render();
+})();
+</script>
+</body>
+</html>
